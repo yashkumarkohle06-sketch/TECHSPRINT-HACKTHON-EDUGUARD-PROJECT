@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EduGuard Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="box">
+  <h2 style="color:white; text-align:center;">Dashboard</h2>
+  <p style="color:aliceblue">Role: <span id="role"></span></p>
+  <h3 style="color: aliceblue;">Add / Update Student</h3>
+  <input id="row" placeholder="Row Number (for update/delete)">
+  <input id="name" placeholder="Name">
+  <input id="email" placeholder="Email">
+  <input id="course" placeholder="Course">
+  <input id="attendance" placeholder="Attendance (%)">
+  <input id="remarks" placeholder="Remarks">
+  <button onclick="addStudent()">Add</button>
+  <button onclick="updateStudent()">Update</button>
+  <button onclick="deleteStudent()">Delete</button>
+
+  <h3>Students List</h3>
+  <button onclick="loadStudents()">Load Students</button>
+  <ul id="list"></ul>
+</div>
+
+<script>
+document.getElementById("role").innerText = localStorage.getItem("role") || "Unknown";
+
+function addStudent(){
+  fetch("http://localhost:5000/add-student",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      name:name.value,
+      email:email.value,
+      course:course.value,
+      attendance:attendance.value,
+      remarks:remarks.value
+    })
+  }).then(res=>res.json()).then(data=>alert(data.message));
+}
+
+function updateStudent(){
+  fetch(`http://localhost:5000/update-student/${row.value}`,{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      name:name.value,
+      email:email.value,
+      course:course.value,
+      attendance:attendance.value,
+      remarks:remarks.value
+    })
+  }).then(res=>res.json()).then(data=>alert(data.message));
+}
+
+function deleteStudent(){
+  fetch(`http://localhost:5000/delete-student/${row.value}`,{method:"DELETE"})
+  .then(res=>res.json()).then(data=>alert(data.message));
+}
+
+function loadStudents(){
+  fetch("http://localhost:5000/students")
+  .then(res=>res.json())
+  .then(data=>{
+    const list=document.getElementById("list");
+    list.innerHTML="";
+    data.forEach((s,index)=>{
+      const li=document.createElement("li");
+      li.innerText=`Row ${index+2}: ${s[0]} | ${s[1]} | ${s[2]} | ${s[3]}% | ${s[4]}`;
+      if(Number(s[3])<75){
+        li.innerText+=" → Extra Class ⚠️";
+        li.classList.add("low-attendance");
+      }
+      list.appendChild(li);
+    });
+  });
+}
+</script>
+</body>
+</html>
